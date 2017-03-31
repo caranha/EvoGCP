@@ -24,8 +24,16 @@ test_that("ABC Solver has not changed results", {
   set.seed(42)
   G <- graph_minton(20,2)
 
-  ret <- solver_abc(G, 50, list(pop = 10, mutate = "togashi", c = 5, onlooker = 10, scout = 2, limit = 5))
+  ret <- solver_abc(G, 50, list(pop = 10, c = 5, onlooker = 10, scout = 2, limit = 5))
   testthat::expect_equal_to_reference(ret, "testSolverResults.abc.RDS")
+})
+
+test_that("ABC Solver (Kui) has not changed results", {
+  set.seed(42)
+  G <- graph_minton(20,2)
+
+  ret <- solver_abc_kui(G, 50, list(pop = 10, c = 5, onlooker = 10, scout = 2, limit = 5))
+  testthat::expect_equal_to_reference(ret, "testSolverResults.abc_kui.RDS")
 })
 
 test_that("HDPSO Solver has not changed results", {

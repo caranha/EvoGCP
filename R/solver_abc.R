@@ -52,6 +52,10 @@ solver_abc <- function(G, nfe, args)
   vio.best <- nrow(G$E) + 1
   c.best <- NULL
 
+  testthat::expect_named(args,
+                         c("pop", "onlooker", "scout", "limit", "c"),
+                         ignore.order = TRUE)
+
   # Parameters:
   pop <- args[["pop"]]                 # population size
   pop.onlooker <- args[["onlooker"]]   # repetitions for step 2

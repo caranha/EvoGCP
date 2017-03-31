@@ -60,6 +60,10 @@ solver_hdpso <- function(G, nfe, args)
   vio.best <- nrow(G$E) + 1
   c.best <- NULL
 
+  testthat::expect_named(args,
+                         c("pop", "w", "c1", "c2"),
+                         ignore.order = TRUE)
+
   # Parameters:
   pop <- args[["pop"]]                 # population size
   w <- args[["w"]]

@@ -59,6 +59,11 @@ solver_cuckoo <- function(G, nfe, args)
   vio.best <- nrow(G$E) + 1
   c.best <- NULL
 
+  testthat::expect_named(args,
+                         c("pop", "pc", "compare", "policy",
+                           "E", "beta", "alpha"),
+                         ignore.order = TRUE)
+
   # Parameters:
   pop <- args[["pop"]]                 # population size
   pc <- args[["pc"]]                   # parasitism chance (0..1)
