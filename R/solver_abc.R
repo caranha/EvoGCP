@@ -73,7 +73,7 @@ solver_abc <- function(G, nfe, args)
     newP <- abc.step1(P, G, c)
 
     eval <- eval + newP$eval
-    D     <- (newP$V < V)   # pairwise testing children and parent
+    D     <- (newP$V <= V)   # pairwise testing children and parent
     P[D,] <- newP$P[D, ]    # replace better children
     V[D]  <- newP$V[D]
     A[D]  <- 0              # reset new solutions
@@ -84,7 +84,7 @@ solver_abc <- function(G, nfe, args)
     newP <- abc.step2(P, G, V, c, pop.onlooker)
 
     eval <- eval + newP$eval
-    D      <- (newP$V < V)             # replace all better individuals
+    D      <- (newP$V <= V)             # replace all better individuals
     P[D, ] <- newP$P[D, ]              # replace better children
     V[D]   <- newP$V[D]
     A[D]   <- 0
@@ -99,7 +99,7 @@ solver_abc <- function(G, nfe, args)
     A[D]   <- 0
 
     # Update best individuals
-    if (min(V) < vio.best) {
+    if (min(V) <= vio.best) {
       vio.best <- V[order(V)[1]]
       c.best <- P[order(V)[1], ]
     }

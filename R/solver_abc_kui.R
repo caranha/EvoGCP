@@ -78,7 +78,7 @@ solver_abc_kui <- function(G, nfe, args)
     newP <- abc.step1(P, G, c)
 
     eval <- eval + newP$eval
-    D     <- (newP$V < V)   # pairwise testing children and parent
+    D     <- (newP$V <= V)  # pairwise testing children and parent
     P[D,] <- newP$P[D, ]    # replace better children
     V[D]  <- newP$V[D]
     A[D]  <- 0              # reset new solutions
@@ -89,7 +89,7 @@ solver_abc_kui <- function(G, nfe, args)
     newP <- abc.step2(P, G, V, c, pop.onlooker)
 
     eval <- eval + newP$eval
-    D      <- (newP$V < V)             # replace all better individuals
+    D      <- (newP$V <= V)            # replace all better individuals
     P[D, ] <- newP$P[D, ]              # replace better children
     V[D]   <- newP$V[D]
     A[D]   <- 0
@@ -104,7 +104,7 @@ solver_abc_kui <- function(G, nfe, args)
     A[D]   <- 0
 
     # Update best individuals
-    if (min(V) < vio.best) {
+    if (min(V) <= vio.best) {
       vio.best <- V[order(V)[1]]
       c.best <- P[order(V)[1], ]
     }
@@ -125,7 +125,7 @@ abc.step1.kui <- function(P, G, c) {
 
   V2 <- sapply(seq_along(replace), function(x) { if (replace[x]) { evaluate(P2[x, ], G) } else { nrow(G$E) + 1 }})
 
-  list(P = P2, V = V2, eval = sum(replace))
+  list(P = P2, V = V2, eval = nrows(P))
 }
 
 #' Change from regular ABC: For every individual, the kui.similarity between P[x, ] and P[M[x], ]
@@ -150,5 +150,5 @@ abc.step2.kui <- function(P, G, V, c, pop.onlooker) {
   P[Mi, ] <- Pi
   V[Mi] <- Vi
 
-  list(P = P, V = V, eval = sum(replace))
+  list(P = P, V = V, eval = pop.onlooker)
 }

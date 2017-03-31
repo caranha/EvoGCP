@@ -87,12 +87,12 @@ solver_hdpso <- function(G, nfe, args)
     P <- newP$P
 
     # updating pbest and gbest
-    D     <- (newP$V < V_best)
+    D     <- (newP$V <= V_best)
     P_best[D,] <- newP$P[D, ]
     V_best[D]  <- newP$V[D]
 
     # Updating Gbest (testing if new best solution is better than current best)
-    if (min(V_best) < vio.best) {
+    if (min(V_best) <= vio.best) {
       vio.best <- V_best[order(V_best)[1]]
       c.best <- P_best[order(V_best)[1], ]
     }

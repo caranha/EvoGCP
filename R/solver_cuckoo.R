@@ -82,7 +82,7 @@ solver_cuckoo <- function(G, nfe, args)
     newP <- cuckoo.step1(P, G, a, b)
 
     eval <- eval + newP$eval
-    D <- (V > newP$V)           # pairwise testing children and parent
+    D <- (newP$V <= V)          # pairwise testing children and parent
     P[D, ] <- newP$P[D, ]       # replace better children
     V[D]   <- newP$V[D]
 
@@ -90,13 +90,13 @@ solver_cuckoo <- function(G, nfe, args)
     newP <- cuckoo.step2(P, G, a, b, pc, ppolicy, E)
 
     eval <- eval + newP$eval
-    if (pcompare == T) { D <- (newP$V < V) }        # pairwise testing children and parent
+    if (pcompare == T) { D <- (newP$V <= V) }        # pairwise testing children and parent
                   else { D <- (newP$V < nrow(G$E) + 1) } # If no comparison, accept all valid mutations
     P[D, ] <- newP$P[D, ]       # replace better children
     V[D]   <- newP$V[D]
 
     # Update best individuals
-    if (min(V) < vio.best) {
+    if (min(V) <= vio.best) {
       vio.best <- V[order(V)[1]]
       c.best <- P[order(V)[1], ]
     }
