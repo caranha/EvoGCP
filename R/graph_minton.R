@@ -28,6 +28,8 @@ graph_minton <- function(N, density = 2) {
 
   Elist <- rbind(E12, E13, E23)
 
+  if (nrow(Elist) < en) stop("Not enough vertices for a 3-colorable graph of this density")
+
   C <- F
 
   while (C == F) {

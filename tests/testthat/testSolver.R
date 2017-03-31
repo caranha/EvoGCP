@@ -27,7 +27,7 @@ test_that("Testing Cuckoo Mutation", {
 
 test_that("Testing Cuckoo Step 1", {
   set.seed(42)
-  G <- graph_random(5, 2)
+  G <- graph_random(10, 2)
   P <- t(sapply(1:5, FUN = function(x) { random_coloring(G$V) }))
   ret <- cuckoo.step1(P, G, alpha = 1, beta = 1)
   testthat::expect_named(ret, c("P", "V", "eval"))
@@ -39,7 +39,7 @@ test_that("Testing Cuckoo Step 1", {
 
 test_that("Testing Cuckoo Step 2", {
   set.seed(42)
-  G <- graph_random(5, 2)
+  G <- graph_random(10, 2)
   P <- t(sapply(1:5, FUN = function(x) { random_coloring(G$V) }))
   ret <- cuckoo.step2(P, G, alpha = 1, beta = 1, pc = 0.5, ppolicy = "fixed", E = 2)
   testthat::expect_named(ret, c("P", "V", "eval"))
