@@ -1,0 +1,73 @@
+# Aoki HDPSO (following the code)
+
+# PBEST, GBEST, P_CURR, P_PREV
+# At the first generation P_CURR = P_PREV = P_BEST = RANDOM
+# Next generation is calculated as:
+# Prand = PCURR - PPREV, Pgbest PCURR - PGBEST, PPBEST = PCURR - PPBEST
+# Prand = rand 1 out of 3
+# R1 and R2 are drawn per generation.
+# After next generation is calculated, P_PREV = P_CURR, P_CURR = P.next
+
+
+
+
+
+# Tasks
+- Implement AOKI's PSO
+- Add informative message for missing parameters in all solvers
+- Write manual for all solvers, steps and mutate functions
+
+
+
+# Issues
+- Some strategies will fail if only one individual is evaluated. This happens
+because the apply(X,1,evaluate) will tread X as a vector, unless (drop=False)
+is used in the slicing. This has been fixed for ABC step 3, where it is most likely
+to happen, but needs to be fixed for other evaluators.
+
+- A negative test for this bug needs to be added for all steps (one test)
+
+# Kui.C variation of ABC
+- for the ABC mutation step, there is a drop chance, based on a random number and the
+  individual similarity:
+  S = 1 - unif(0-1)*(d(i, j) / n)
+  Where d(i,j) is the number of differences between individual i and j, and n is the size of an individual.
+  For each mutation operator, if unif(0,1) < S then the operation happens. Else, it does not.
+- NOTE: according to Kui's formulation, different individuals are more likely to skip mutation.
+- NOTE: Kui does not stablish if skipped mutations count for evaluations.
+  We will assume that skipped mutations do not evaluate.
+- NOTE: I am not sure if this applies only to step one (employed bee) or to step two (onlooker bee) as well.
+
+## Implementing Kui's ABC
+- ABC steps need to select individuals to be skipped before mutating them, and need to
+  skip evaluation of the individuals who did skipped mutation.
+
+====================== ISSUES ===========================================
+- Rare bug where apply(evaluate) fails if we are evaluating only one element -- needs to be forced into a 1-row matrix, not vector
+  Fixed on ABC-step 3, where it is likely to happen, but needs to be addressed in all evaluators.
+
+- Write manual for all sover and mutate function
+
+- Add informative message for missing parameters
+
+- Change ABC mutators/steps to deal with a positive number of not-evaluated elements
+- Add Kui.C lazy ABC mutator (gives up randomly)
+
+- Implement PSO
+
+- Add test for the bug when only one individual is changed in ABC step 3
+
+====================== ROADMAP =========================================
+STAGE I -- Implementation of existing methods
+- Create solvers
+  (Problem, Eval, Arglist) -> (Violations, Best Solution, Evals spent)
+  - Cuckoo Solver (Toda)
+  - PSO Solver (Aoki)
+  - ABC Solver (Togashi)
+
+- Create script to fine-tune the solvers
+- Compare the fine-tuned solvers and write paper
+
+STAGE II -- Component Oriented Solver
+
+STAGE III -- Automated Algorithm Generation

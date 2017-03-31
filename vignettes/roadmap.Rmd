@@ -1,0 +1,59 @@
+---
+title: "Outline for the 3GCP package and its components"
+author: "Claus Aranha"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Outline and Components}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+The 3GCP package implements a number of 3-Graph Coloring Problem
+solvers, focusing on swarm-based meta-heuristics. The algorithms
+are implemented on a component-oriented format, so that 
+the user can freely mix and match components from different 
+algorithms.
+
+The package provides support for evaluating one or more algorithms,
+for automated fine-tuning algorithm parameters, and for auto-discovery
+of algorithm component composition.
+
+## Package Components
+
+Definition of a 3-GCP problem. Package provides generation and evaluation.
+(Generation, Random, and Paper)
+
+Definition of a swarm-based meta-heuristic solver. 
+
+Definition of the fine-tuning component.
+
+Definition of the evaluation/comparison component.
+
+Definition of the auto-discovery component.
+
+## Algorithm Outline and Component Classes
+
+Individual
+
+Initial Generation
+
+Variation
+
+Evaluation
+
+Selection
+
+## Component Details
+
+For each class above, list the components implemented.
+
+## Base Algorithm-sets
+
+- Aoki's Hamming-PSO
+- Toda's Cuckoo Search
+- Togashi's ABC
+- Full random Algorithm
+
+
+
