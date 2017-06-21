@@ -1,16 +1,17 @@
 Package: EvoGCP
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line)
-License: What license is it under?
+Title: Evolutionary Computation Tools for the Graph Coloring Problem
+Version: 0.2.0
+Author: Claus Aranha
+Maintainer: Claus Aranha <caranha@cs.tsukuba.ac.jp>
+Description: Set of solvers for the GCP problem based on evolutionary computation, and utility functions such as graph generators and batch test runners.
+License: CC BY-SA 4.0
 LazyData: TRUE
 Suggests:
     testthat,
     knitr,
     rmarkdown,
-    pbapply
+    pbapply,
+    parallel
 VignetteBuilder: knitr
 RoxygenNote: 5.0.1

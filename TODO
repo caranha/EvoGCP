@@ -1,7 +1,7 @@
 # Tasks
-- Add informative message for missing parameters in all solvers
-- Review the codes for result compatibility with student code
+- Make time output of "tester" optional
+- Make CS to ignore missing E parameter gracefully if policy is not fixed
+
 - Write Description
 - Add to github
 - Add FA algorithm from Fister
-- Add script for running irace on a solver

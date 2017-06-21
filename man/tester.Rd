@@ -4,16 +4,16 @@
 \alias{tester}
 \title{Tester}
 \usage{
-tester(pset, nfe, solver, solverpar, cl = NULL, output = NULL)
+tester(pset, nfe, solverpar, cl = NULL, output = NULL)
 }
 \arguments{
 \item{nfe}{the maximum number of evaluations per graph}
 
-\item{solver}{the solver method to be used}
-
 \item{solverpar}{a list with the parameters for solver}
 
 \item{problemset}{a list of 3GCP graphs}
+
+\item{solver}{the solver method to be used}
 }
 \value{
 a list with summarized results

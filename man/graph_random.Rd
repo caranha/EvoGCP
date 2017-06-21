@@ -2,7 +2,7 @@
 % Please edit documentation in R/graph_random.R
 \name{graph_random}
 \alias{graph_random}
-\title{Randomly generates a 3-GCP instance}
+\title{Generates a random, valid 3-GCP instance, without connectivity guarantee}
 \usage{
 graph_random(N, density = 2)
 }
@@ -12,10 +12,11 @@ graph_random(N, density = 2)
 \item{density}{0..1 - edge density in the graph.}
 }
 \value{
-a list of pair arrays representing edges in the graph. The graph is simple and undirected.
+a list with two elements: V - number of nodes in the graph, and E - an edge list in the shape of a 2xE matrix. The
+graph is guaranteed to have a valid 3-coloring, but not guaranteed to be connected.
 }
 \description{
-Randomly generates a 3-GCP instance
+Generates a random, valid 3-GCP instance, without connectivity guarantee
 }
 \examples{
 generate_random(10,2)

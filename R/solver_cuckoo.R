@@ -59,10 +59,10 @@ solver_cuckoo <- function(G, nfe, args)
   vio.best <- nrow(G$E) + 1
   c.best <- NULL
 
-  testthat::expect_named(args,
-                         c("pop", "pc", "compare", "policy",
-                           "E", "beta", "alpha"),
-                         ignore.order = TRUE)
+  assertthat::assert_that(
+    all(assertthat::has_name(args, c("pop", "pc", "compare", "policy",
+                                     "E", "beta", "alpha")))
+  )
 
   # Parameters:
   pop <- args[["pop"]]                 # population size

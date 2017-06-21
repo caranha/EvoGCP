@@ -57,9 +57,10 @@ solver_abc_kui <- function(G, nfe, args)
   vio.best <- nrow(G$E) + 1
   c.best <- NULL
 
-  testthat::expect_named(args,
-                         c("pop", "onlooker", "scout", "limit", "c"),
-                         ignore.order = TRUE)
+  assertthat::assert_that(
+    all(assertthat::has_name(args,
+                             c("pop", "onlooker", "scout", "limit", "c")
+    )))
 
   # Parameters:
   pop <- args[["pop"]]                 # population size

@@ -4,7 +4,7 @@ context("Solver Components")
 test_that("Testing batch solver outputs", {
   set.seed(42)
   P <- problemset(10, 20, 1, "random")
-  result <- tester(P, nfe = 10, solver = "random", solverpar = NULL)
+  result <- tester(P, nfe = 10, solverpar = list(name = "random"))
   testthat::expect_named(result, c('violation', 'solution', 'evaluation'))
   testthat::expect_length(result$violation, 10)
   testthat::expect_length(result$evaluation, 10)
