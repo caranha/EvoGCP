@@ -2,7 +2,6 @@
 #'
 #' Solves a set of 3GCP problems using a specific solving method and returns the results
 #'
-#'
 #' example of multi-core operation using the parallel library
 #'
 #' no_cores <- parallel::detectCores() - 1
@@ -17,12 +16,12 @@
 #' @return a list with summarized results
 #'
 #' @export
-tester <- function(pset, nfe, solverpar, cl = NULL, output = NULL) {
+tester <- function(pset, nfe, solverpar, cl = NULL, output = "none") {
 
   solver_function <- paste0("solver_", tolower(solverpar$name))
 
   result <- if (requireNamespace("pbapply", quietly = TRUE)) {
-    pbapply::pboptions(type = "timer")
+    pbapply::pboptions(type = output)
     result <- pbapply::pbsapply(pset,
                                 tester.solve, nfe, solver_function, solverpar,
                                 cl = cl)
@@ -34,8 +33,6 @@ tester <- function(pset, nfe, solverpar, cl = NULL, output = NULL) {
   result <- list(violation  = unlist(result[1, ]),
                  solution   = matrix(unlist(result[2, ]), nrow = ncol(result)),
                  evaluation = unlist(result[3, ]))
-
-  if (!is.null(output)) { save(result, file = output) }
 
   return (result)
 }
@@ -70,7 +67,7 @@ tester <- function(pset, nfe, solverpar, cl = NULL, output = NULL) {
 #' file.remove("bar.test")
 #'
 #' @export
-tester.batch <- function(solverpar.list, graphpar.list, results.file, graphs.file, nfe, random.seed = 42, ncores = Inf)
+tester.batch <- function(solverpar.list, graphpar.list, results.file, graphs.file, nfe, random.seed = 42, ncores = Inf, output = "none")
 {
   assertthat::assert_that(
     is.list(solverpar.list),
@@ -136,7 +133,7 @@ tester.batch <- function(solverpar.list, graphpar.list, results.file, graphs.fil
 
       par <- solverpar.list[[exp[i,1]]]
       par$name <- par$method
-      results.list[[exp.name]] <- tester(graphs.list[[exp[i,2]]], nfe = nfe, solverpar = par, cl = cl)
+      results.list[[exp.name]] <- tester(graphs.list[[exp[i,2]]], nfe = nfe, solverpar = par, cl = cl, output)
     }
 
     save (results.list, file = results.file)
