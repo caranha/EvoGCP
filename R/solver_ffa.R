@@ -121,9 +121,9 @@ ffa.move <- function(i, W, V, o, alpha, beta, gamma){
   }
   return(w)
 }
-
-ffa.move2 <- function(i){##not done
-  ##same as step1+move, but more compact
+#**INCOMPLETE
+##same as step1+move, but more compact
+ffa.move2 <- function(i){
   #w <- current position + sum(attractions) + random step
 
   M <- sapply(1:pop, FUN = function(x) { seq(nrow(W))[(V > V[x])] }) #todo: optimize
