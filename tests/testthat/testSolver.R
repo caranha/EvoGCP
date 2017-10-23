@@ -103,4 +103,24 @@ test_that("Testing ABC step 3", {
   testthat::expect_true(any(N$P[5, ] != P[5, ]))
 })
 
+##################################################################
+test_that("Testing DSatur", {
+  set.seed(42) #This graph generates violations for DSatur
+  G <-  graph_culberson_equipartite(500, .015)
+  G$adj <- adjacency_list(G)
+  degree <- sapply(1:G$V, FUN = function(x) { sum(G$E[1]==x)+sum(G$E[2]==x) })
+
+  s <- solver_dsatur(G, G$V+1, args=list(weight=degree, partial_solution=NULL, leave_uncolored=F))
+  expect_equal(s$violation, 0)
+  expect_equal(length(s$best[s$best==0]), 0)
+
+  s <- solver_dsatur(G, G$V+1, args=list(weight=degree, partial_solution=NULL, leave_uncolored=T))
+  expect_equal(s$violation, 0)
+  expect_equal(length(s$best[s$best==0]), 0)
+})
+
+##################################################################
+test_that("Testing Firefly Algorithm", {
+
+})
 
