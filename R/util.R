@@ -111,3 +111,39 @@ similarity.kui <- function(x1, x2) {
   1 - r * (d / l)
 }
 
+#' Adjacency List
+#'
+#' Return the adjacency list of a given graph G.
+#'
+#' @param G graph, list with two elements: V - number of nodes in the graph, and E - an edge list in the shape of a 2xE matrix
+#' @return The adjacency list of G
+#'
+adjacency_list <- function(G){
+  return(tapply(c(G$E[[2]],G$E[[1]]), c(G$E[[1]],G$E[[2]]), unique))
+}
+
+#' Euclidean Distance
+#'
+#' Compute the euclidean distance between two vectors (same dimension).
+#'
+#' @param a,b vectors with same dimension
+#' @return Double, the eucliden distance between vector a and vector b
+#'
+euclidean_distance <- function(a, b){
+  #if (length(a) == length(b))
+  return(sqrt(sum(sapply(1:length(a), FUN = function(x) { (a[x] - b[x])^2 }))))
+  #return(NULL)
+}
+
+#' Random weight generator
+#'
+#' Generate a random set of weights for heuristics which use real-values search space.
+#'
+#' @param N Number of vertices
+#' @param ub The lower bound of the values in the weight set (0 <= lv <= ub)
+#' @param lb The upper bound of the values in the weight set (0 <= lv <= ub)
+#' @return A vector with N values (double) in the interval [ub,lb]
+#'
+random_weight <- function(N, lb, ub){
+  return(sapply(1:N, FUN = function(x) { (ub - lb) *  runif(1) + lb }))
+}
