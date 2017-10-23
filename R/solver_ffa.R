@@ -24,11 +24,12 @@
 #'
 #' \itemize{
 #' \item \emph{pop}: Integer > 0. The size of the solution set X
-#' \item \emph{lb}: Integer > 0. The lower bound of the weight set
-#' \item \emph{ub}: Integer > 0. The upper bound of the weight set
+#' \item \emph{lb}: Number, 0 <= lv <= ub. The lower bound of the values in the weight set
+#' \item \emph{ub}: Number, 0 <= lv <= ub. The upper bound of the values in the weight set
 #' \item \emph{alpha}: Integer > 0. The size of the randomness move withim the search space
 #' \item \emph{beta}: Integer > 0. The attractiveness at distance 0
 #' \item \emph{gamma}: Integer > 0. The absorbtion coefficient
+#' \item \emph{swap}: Boolean. If it is to use the heuristical swap.
 #' }
 #'
 #' @return A list with three names:
@@ -44,8 +45,7 @@
 #' B. Filipic and J.Silc, Eds. Jozef Stefan Institute, Ljubljana, Slovenia, 2012
 #'
 #' @export
-solver_ffa <- function(G, nfe, args)
-{
+solver_ffa <- function(G, nfe, args){
   eval <- 0
   vio.best <- nrow(G$E) + 1
   c.best <- NULL
@@ -62,30 +62,53 @@ solver_ffa <- function(G, nfe, args)
   alpha <- args[["alpha"]]          # size of the randomness move withim the search space
   beta <- args[["beta"]]            # attractiveness at distance 0
   gamma <- args[["gamma"]]          # absorbtion coefficient
+  use_swap <- args[["swap"]]        # heuristical swap?
+
+
+  #DSatur heuristic setup
+  G$adj <- adjacency_list(G) #build adjacency list
 
   # Initial population
   W <- t(sapply(1:pop, FUN = function(x) { random_weight(G$V, lb, ub) }))
-  P <- DSatur(W, G)
-  V <- apply(P, 1, evaluate, graph = G)
+
+  #decode
+  newP <- ffa.decode(W, G)
+  P <- newP$P
+  V <- newP$V
 
   vio.best <- V[order(V)[1]]
   c.best <- P[order(V)[1], ]
-  eval <- pop
+  eval <- newP$eval
 
-  while (vio.best > 0 & eval < nfe) {
+  while(vio.best > 0 & eval < nfe) {
     # Step 1. Move all fireflies
-    newW <- ffa.step1(W, P, V, G, alpha, beta, gamma)
+    newW <- ffa.step1(W, V, alpha, beta, gamma, pop)
 
-    eval <- eval + newW$eval
-    #elitism() todo
-    W <- newW$W
-    P <- newW$P
-    V <- newW$V
+    # Decode and evaluate
+    newP <- ffa.decode(W, G)
+
+    #elitism
+    eval <- eval + newP$eval
+    D <- (newP$V <= V)          # pairwise testing children and parent
+    W[D, ] <- newW[D, ]       # replace better children
+    P[D, ] <- newP$P[D, ]
+    V[D]   <- newP$V[D]
 
     # Update best individuals
     if (min(V) <= vio.best) {
       vio.best <- V[order(V)[1]]
       c.best <- P[order(V)[1], ]
+    }
+
+    # Step 2. Heuristical Swap (not implemented yet)
+    use_swap <- F
+    if(use_swap == T){
+      newW <- ffa.heuristical_swap(NULL,NULL,NULL)
+
+      # Decode and evaluate
+      newP <- ffa.decode(W, G)
+
+      # ... #
     }
   }
 
@@ -93,13 +116,11 @@ solver_ffa <- function(G, nfe, args)
 
 }
 
-ffa.step1 <- function(W, P, V, G, alpha, beta, gamma) {
+#move firefly
+ffa.step1 <- function(W, V, alpha, beta, gamma, pop) {
   o <- order(V)
   W2 <- t(sapply(1:pop, ffa.move, W=W, V=V, o=o, alpha=alpha, beta=beta, gamma=gamma))
-  P2 <- DSatur(W2, G)
-  V2 <- apply(P2, 1, evaluate, graph = G)
-
-  list(W = W2, P = P2, V = V2, eval = nrow(P2))
+  return(W2)
 }
 
 ffa.move <- function(i, W, V, o, alpha, beta, gamma){
@@ -121,83 +142,50 @@ ffa.move <- function(i, W, V, o, alpha, beta, gamma){
   }
   return(w)
 }
-#**INCOMPLETE
-##same as step1+move, but more compact
-ffa.move2 <- function(i){
-  #w <- current position + sum(attractions) + random step
 
-  M <- sapply(1:pop, FUN = function(x) { seq(nrow(W))[(V > V[x])] }) #todo: optimize
-  M_ind <- seq(pop)[sapply(1:pop, FUN = function(x) { length(M[[x]])>0 })]
+ffa.decode <- function(W, G){
+  #decode
+  P2 <- sapply(1:pop, FUN = function(x) {
+    solver_dsatur(G, G$V+1, args=list(weight=W[x,], partial_solution=NULL, leave_uncolored=F))})
 
-  #r = distance between all attracted fireflies to its attracting ones
-  R <- sapply(M_ind, FUN = function(x) { sapply(M[[x]], FUN = function(y) { Euclidean.distance(W[x,], W[y,]) }) })
-  #attraction = beta*exp(-gamma*r^2)(wi-wj)
-  A1 <- sapply(1:length(M_ind), FUN = function(x) { sapply(R[[x]], FUN = function(r) { beta*exp(-gamma*(r^2)) }) })
-  A2 <- sapply(M_ind, FUN = function(x) { t(sapply(M[[x]], FUN = function(y) { W[x,]-W[y,] })) })
-  #sum of attractions
-  A <- sapply(1:length(M_ind), FUN = function(x) { A1[[x]]*A2[[x]] })
-  A <- t(sapply(1:length(M_ind), FUN = function(x) { sapply(1:G$V, FUN = function(y) { sum(A[[x]][,y]) }) }))
-  #random step of each firefly
-  RND <- sapply(1:length(M_ind), FUN = function(x) { alpha*(runif(1)-(1/2)) })
-  #w <- current position + sum(attractions) + random step
-  W2 <- t(sapply(1:length(M_ind), FUN = function(x) { W[M_ind[x],] + A[x,] + RND[x] }))
+  #extrac P, V and eval
+  P3 <- t(sapply(1:pop, FUN = function(x) { P2[["best",x]] }))
+  V2 <- unlist(P2["violation",])
+  eval2 <- sum(unlist(P2["evals",]))
 
-  #todo: build W
-
-  return(w)
+  return(list(P = P3, V = V2, eval = eval2))
 }
 
-#ffa.step2() <- function(){
-ffa.heuristical_swap <- function(){
+#' Heuristical Swap
+#'
+#' Swaps an uncolored vertex with the vertex that has highest saturation degree
+#' if tie, choose randomly
+#'
+#' @param p vector of colors
+#' @param w vector of weights
+#' @param rho vector of saturation degrees
+#' @return a permutation of w
+ffa.heuristical_swap <- function(p, w, rho){
+  #runs till improvement?
+  #1. get the first uncolored vertex
+  #2. sort the predecessors according to the saturation degree descending
+  #3. swap the uncolored vertex with the vertex that has highest saturation degree, if tie, choose randomly (from the tie set)
 
-}
+  # SKETCH (not implemented) #
+  w2 <- w
 
-#**INCOMPLETE todos:
-#1. how use the weights?
-#2. once this function is done, compute the adjacency list outside this function
-#3. what does <least possible (lowest numbered) color> mean?  less used color in the graph OR less used color for that vertex OR ??
-#4. what if all 3 colors have been used already? should leave the vertex with no color? can this case actually happen?
-DSatur <- function(w, G){
-  #D. Brelaz: New methods to color vertices of a graph. Communications of the ACM. 22(4): 251–256 (1979).
+  #Uncolored vertex
+  v1 <- which(p == 0)[1]
 
-  p <- rep(0, G$V)
-  adj <- tapply(c(G$E[[2]],G$E[[1]]), c(G$E[[1]],G$E[[2]]), unique)
-  c <- matrix(0, 3, G$V) #adjacent colors of each vertex
+  #2. todo
+  #rho <- sapply(1:length(G), FUN = function(x) { sum(c[,x]) })
+  #o <- order()
+  v2 <- 1
 
-  #1. Arrange the vertices by decreasing order of degrees.
-  d <- table(unlist(G$E))
-  o <- order(d, decreasing = T)
+  #3.
+  w2[v1] <- w[v2]
+  w2[v2] <- w[v1]
 
-  #2. Color a vertex of maximal degree with color 1. (todo: put all lines below inside the loop)
-  v <- as.numeric(names(d[o[1]])) #vertex to color
-  color <- 1
+  return(w2)
 
-  p[v] <- 1
-  c[color, adj[[names(d[o[1]])]]] <- c[color, adj[[names(d[o[1]])]]] + 1 #update number of times each color has been used
-  rho <- sapply(1:G$V, FUN = function(x) { sum(c[,x]) }) #update saturation degrees of the uncolored vertices
-
-  #5. If all the vertices are colored, stop. Otherwise, return to 3.
-  while(length(p[p == 0])>0){
-    #3. Choose a vertex with a maximal saturation degree.
-    v <- which.max(rho)
-
-    #4. Color the chosen vertex with the least possible (lowest numbered) color.
-    color <- which.min(c[,v])
-    p[v] <- color #color
-    c[color, adj[[v]]] <- c[color, adj[[v]]] + 1
-    uncolored_v <- which(p==0, arr.ind = TRUE) #vertices with no color
-    rho <- sapply(1:G$V, FUN = function(x) { if(is.element(x, uncolored_v)) {sum(c[,x])} else -1 }) #update saturation degree
-  }
-  return(p)
-
-}
-
-euclidean_distance <- function(a, b){
-  if (length(a) == length(b))
-    return(sqrt(sum(sapply(1:length(a), FUN = function(x) { (a[x] - b[x])^2 }))))
-  return(NULL)
-}
-
-random_weight <- function(N, lb, ub){
-  return(sapply(1:N, FUN = function(x) { (ub - lb) *  runif(1) + lb }))
 }
