@@ -4,15 +4,13 @@
 #' implementation described in Fister et al., 2012.
 #'
 #' The FFA algorithm begins with a random set of solutions X, and at every
-#' iteration performs the following three*** steps:
+#' iteration performs two steps:
 #'
 #' \itemize{
-#' \item 1- ***
-#' \item 2- ***
-#' \item 3- ***
+#' \item 1- Move fireflies
+#' \item 2- Heuristical Swap (optional)
 #'
-#'
-#' Move.ffa() ***
+#' After each step, each solution is evaluated after being decoded
 #'
 #'
 #' @param G the graph to be solved, represented by a list where G$V is the
@@ -85,7 +83,7 @@ solver_ffa <- function(G, nfe, args){
     newW <- ffa.step1(W, V, alpha, beta, gamma, pop)
 
     # Decode and evaluate
-    newP <- ffa.decode(W, G)
+    newP <- ffa.decode(newW, G)
 
     #elitism
     eval <- eval + newP$eval
@@ -94,21 +92,25 @@ solver_ffa <- function(G, nfe, args){
     P[D, ] <- newP$P[D, ]
     V[D]   <- newP$V[D]
 
+    # Step 2. Heuristical Swap
+    if(use_swap == T){
+      newW <- ffa.step2(P, W, G)
+
+      # Decode and evaluate
+      newP <- ffa.decode(newW, G)
+
+      #elitism
+      eval <- eval + newP$eval
+      D <- (newP$V <= V)          # pairwise testing children and parent
+      W[D, ] <- newW[D, ]       # replace better children
+      P[D, ] <- newP$P[D, ]
+      V[D]   <- newP$V[D]
+    }
+
     # Update best individuals
     if (min(V) <= vio.best) {
       vio.best <- V[order(V)[1]]
       c.best <- P[order(V)[1], ]
-    }
-
-    # Step 2. Heuristical Swap (not implemented yet)
-    use_swap <- F
-    if(use_swap == T){
-      newW <- ffa.heuristical_swap(NULL,NULL,NULL)
-
-      # Decode and evaluate
-      newP <- ffa.decode(W, G)
-
-      # ... #
     }
   }
 
@@ -145,12 +147,12 @@ ffa.move <- function(i, W, V, o, alpha, beta, gamma){
 
 ffa.decode <- function(W, G){
   #decode
-  P2 <- sapply(1:pop, FUN = function(x) {
-    solver_dsatur(G, G$V+1, args=list(weight=W[x,], partial_solution=NULL, leave_uncolored=F))})
+  P2 <- sapply(1:nrow(W), FUN = function(x) {
+    solver_dsatur(G, G$V+1, args=list(weight=W[x,], partial_solution=NULL, leave_uncolored=T))})
 
   #extrac P, V and eval
-  P3 <- t(sapply(1:pop, FUN = function(x) { P2[["best",x]] }))
-  V2 <- unlist(P2["violation",])
+  P3 <- t(sapply(1:nrow(W), FUN = function(x) { P2[["best",x]] }))
+  V2 <- unlist(unname(P2["violation",]))
   eval2 <- sum(unlist(P2["evals",]))
 
   return(list(P = P3, V = V2, eval = eval2))
@@ -161,31 +163,42 @@ ffa.decode <- function(W, G){
 #' Swaps an uncolored vertex with the vertex that has highest saturation degree
 #' if tie, choose randomly
 #'
+#' Steps:
+#' 1. get the first uncolored vertex
+#' 2. sort the predecessors according to the saturation degree descending
+#' 3. swap the uncolored vertex with the vertex that has highest saturation degree, if tie, choose randomly (from the tie set)
+#'
 #' @param p vector of colors
 #' @param w vector of weights
 #' @param rho vector of saturation degrees
 #' @return a permutation of w
-ffa.heuristical_swap <- function(p, w, rho){
-  #runs till improvement?
-  #1. get the first uncolored vertex
-  #2. sort the predecessors according to the saturation degree descending
-  #3. swap the uncolored vertex with the vertex that has highest saturation degree, if tie, choose randomly (from the tie set)
-
-  # SKETCH (not implemented) #
+ffa.heuristical_swap <- function(p, w, G){
   w2 <- w
 
-  #Uncolored vertex
-  v1 <- which(p == 0)[1]
+  #get the uncolored vertex (if there is)
+  v <- which(p == 0)[1]
+  if(!is.na(v) & v > 1){ #there is no vertex to swap, if the uncolored vertex is the first one
+    #get saturation degrees
 
-  #2. todo
-  #rho <- sapply(1:length(G), FUN = function(x) { sum(c[,x]) })
-  #o <- order()
-  v2 <- 1
+    adjacent_color <- adjacent_color_set(p, G)
+    satur <- sapply(1:ncol(adjacent_color), FUN = function(x) { sum(adjacent_color[,x]) })
+    o <- order(satur[1:(v-1)], decreasing = T)
 
-  #3.
-  w2[v1] <- w[v2]
-  w2[v2] <- w[v1]
+    #get the vertex that has the highest satur
+    U <- which(satur[1:(v-1)] == satur[o[1]]) #list of vertices with highest satur
+    u <- sample(U, 1) #choose one of them randomly
+
+    #swap v and u
+    w2[v] <- w[u]
+    w2[u] <- w[v]
+  }
 
   return(w2)
 
+}
+
+#heuristical swap
+ffa.step2 <- function(P, W, G){
+  W2 <- t(sapply(1:nrow(W), FUN = function(x){ ffa.heuristical_swap(p=P[x,], w=W[x,], G=G) }))
+  return(W2)
 }

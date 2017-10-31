@@ -104,23 +104,157 @@ test_that("Testing ABC step 3", {
 })
 
 ##################################################################
-test_that("Testing DSatur", {
-  set.seed(42) #This graph generates violations for DSatur
-  G <-  graph_culberson_equipartite(500, .015)
+test_that("Testing DSatur, valid coloring", {
+  set.seed(42)
+  G <-  graph_random(10, 2)
   G$adj <- adjacency_list(G)
-  degree <- sapply(1:G$V, FUN = function(x) { sum(G$E[1]==x)+sum(G$E[2]==x) })
+  degree <- sapply(1:G$V, FUN = function(x) { sum(G$E[,1]==x)+sum(G$E[,2]==x) })
 
+  set.seed(42)
   s <- solver_dsatur(G, G$V+1, args=list(weight=degree, partial_solution=NULL, leave_uncolored=F))
-  expect_equal(s$violation, 0)
-  expect_equal(length(s$best[s$best==0]), 0)
+  testthat::expect_equal(s$violation, 0)
+  testthat::expect_equal(length(s$best[s$best==0]), 0)
 
+  set.seed(42)
   s <- solver_dsatur(G, G$V+1, args=list(weight=degree, partial_solution=NULL, leave_uncolored=T))
-  expect_equal(s$violation, 0)
-  expect_equal(length(s$best[s$best==0]), 0)
+  testthat::expect_equal(s$violation, 0)
+  testthat::expect_equal(length(s$best[s$best==0]), 0)
+  testthat::expect_equal(length(s$best[s$best==0]), s$violation)
 })
 
+test_that("Testing DSatur with a graph which generates violations", {
+  set.seed(42)
+  #G <-  graph_culberson_equipartite(500, .015)
+  G <-  graph_random(45, 2)
+  G$adj <- adjacency_list(G)
+  degree <- sapply(1:G$V, FUN = function(x) { sum(G$E[,1]==x)+sum(G$E[,2]==x) })
+
+  set.seed(42)
+  s <- solver_dsatur(G, G$V+1, args=list(weight=degree, partial_solution=NULL, leave_uncolored=F))
+  testthat::expect_equal(s$violation, 1)
+  testthat::expect_equal(length(s$best[s$best==0]), 0) #violation due colored vertex
+
+  set.seed(42)
+  s <- solver_dsatur(G, G$V+1, args=list(weight=degree, partial_solution=NULL, leave_uncolored=T))
+  testthat::expect_equal(s$violation, 1)
+  testthat::expect_equal(length(s$best[s$best==0]), 1)
+  testthat::expect_equal(length(s$best[s$best==0]), s$violation) #violation due uncolored vertex
+})
+
+
+
 ##################################################################
+test_that("Testing Firefly Algorithm Step 1", {
+  #setup
+  set.seed(42)
+  G <-  graph_random(10, 2)
+  G$adj <- adjacency_list(G)
+
+  set.seed(42)
+  W <- t(sapply(1:5, FUN = function(x) { random_weight(10, 0, 1) }))
+  set.seed(42)
+  newP <- ffa.decode(W, G)
+  P <- newP$P
+  V <- newP$V
+
+  #test
+  set.seed(42)
+  newW <- ffa.step1(W, V, alpha=0.1, beta=0.1, gamma=0.8, nrow(W))
+  testthat::expect_equal(nrow(W), nrow(newW))
+  testthat::expect_equal(ncol(W), ncol(newW))
+  testthat::expect_true(all(newW > 0 & newW < 1))
+})
+
+test_that("Testing Firefly Algorithm Step 2", {
+  #setup
+  set.seed(42)
+  G <-  graph_random(10, 2)
+  G$adj <- adjacency_list(G)
+
+  set.seed(42)
+  W <- t(sapply(1:5, FUN = function(x) { random_weight(10, 0, 1) }))
+  set.seed(42)
+  newP <- ffa.decode(W, G)
+  P <- newP$P
+  V <- newP$V
+
+  #test
+  set.seed(42)
+  newW <- ffa.step2(P, W, G)
+  testthat::expect_equal(nrow(W), nrow(newW))
+  testthat::expect_equal(ncol(W), ncol(newW))
+  testthat::expect_true(all(newW > 0 & newW < 1))
+})
+
+test_that("Testing Firefly Algorithm Operator Heuristical Swap", {
+  #setup
+  G <- list(V = 5, E = matrix(c(1, 2, 1, 3, 2, 4, 3, 5, 2, 5, 4, 5), 6, byrow = T))
+  G$adj <- adjacency_list(G)
+  W <- t(sapply(1:G$V, FUN = function(x) { sum(G$E[,1]==x)+sum(G$E[,2]==x) }))
+  P <- t(c(1,2,3,3,0))
+
+  #test
+  newW <- ffa.step2(P, W, G)
+  testthat::expect_equal(nrow(W), nrow(newW))
+  testthat::expect_equal(ncol(W), ncol(newW))
+  testthat::expect_true(all(newW == c(3,3,2,2,2)) | all(newW == c(2,3,2,2,3))) #it will swap 5 with 1 or 2
+
+  #test
+  set.seed(42)
+  W <- t(sapply(1:5, FUN = function(x) { random_weight(5, 0, 1) }))
+  set.seed(42)
+  P <- ffa.decode(W, G)
+  P <- P$P
+  newW <- ffa.step2(P, W, G)
+  testthat::expect_equal(nrow(W), nrow(newW))
+  testthat::expect_equal(ncol(W), ncol(newW))
+})
+
 test_that("Testing Firefly Algorithm", {
+  #setup
+  set.seed(42)
+  G <-  graph_random(100, 2)
+
+  #test
+  set.seed(42)
+  result <- solver_ffa(G, 1000, args=list(pop=5, lb=0, ub=1, alpha=0.1, beta=0.1, gamma=0.8, swap=F))
+  testthat::expect_named(result, c("violation", "best", "evals"))
+  testthat::expect_length(result$violation, 1)
+  testthat::expect_length(result$best, 100)
+  testthat::expect_length(result$evals, 1)
+  testthat::expect_gte(min(result$best), 0)
+  testthat::expect_lte(max(result$best), 3)
+
+  #swap
+  set.seed(42)
+  result <- solver_ffa(G, 1000, args=list(pop=5, lb=0, ub=1, alpha=0.1, beta=0.1, gamma=0.8, swap=T))
+  testthat::expect_named(result, c("violation", "best", "evals"))
+  testthat::expect_length(result$violation, 1)
+  testthat::expect_length(result$best, 100)
+  testthat::expect_length(result$evals, 1)
+  testthat::expect_gte(min(result$best), 0)
+  testthat::expect_lte(max(result$best), 3)
+
+  set.seed(42)
+  G <-  graph_culberson_equipartite(500, .015)
+
+  set.seed(42)
+  result <- solver_ffa(G, 30000, args=list(pop=10, lb=0, ub=1, alpha=0.1, beta=0.1, gamma=0.8, swap=F))
+  testthat::expect_named(result, c("violation", "best", "evals"))
+  testthat::expect_length(result$violation, 1)
+  testthat::expect_length(result$best, 500)
+  testthat::expect_length(result$evals, 1)
+  testthat::expect_gte(min(result$best), 0)
+  testthat::expect_lte(max(result$best), 3)
+
+  set.seed(42)
+  result <- solver_ffa(G, 30000, args=list(pop=10, lb=0, ub=1, alpha=0.1, beta=0.1, gamma=0.8, swap=T))
+  testthat::expect_named(result, c("violation", "best", "evals"))
+  testthat::expect_length(result$violation, 1)
+  testthat::expect_length(result$best, 500)
+  testthat::expect_length(result$evals, 1)
+  testthat::expect_gte(min(result$best), 0)
+  testthat::expect_lte(max(result$best), 3)
 
 })
 
