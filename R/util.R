@@ -119,7 +119,8 @@ similarity.kui <- function(x1, x2) {
 #' @return The adjacency list of G
 #'
 adjacency_list <- function(G){
-  return(tapply(c(G$E[[2]],G$E[[1]]), c(G$E[[1]],G$E[[2]]), unique))
+  #return(tapply(c(G$E[[2]],G$E[[1]]), c(G$E[[1]],G$E[[2]]), unique))
+  return(tapply(c(G$E[,2],G$E[,1]), c(G$E[,1],G$E[,2]), unique))
 }
 
 #' Euclidean Distance

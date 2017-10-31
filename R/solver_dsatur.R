@@ -50,25 +50,25 @@ solver_dsatur <- function(G, nfe, args){#wrapper
     result <- dsatur(G, nfe, weight, partial_solution) #colors all vertices, can generate violation
   }
 
-  violation <- evaluate(result[["best"]], G)
-
-  return(list(violation = violation, best=result[["best"]], evals=result[["evals"]]))
+  return(list(violation = result[["violation"]], best=result[["best"]], evals=result[["evals"]]))
 
 }
 
 #' DSatur (colors all vertices, can generate violation)
 dsatur <- function(G, nfe, weight, partial_solution){
   #Init: solution, adjacent colors of each vertex, saturation degrees
-  #adjacent_color <- matrix(0, 3, G$V)
   solution <- partial_solution
-  adjacent_color <- adjacent_color_set(solution)
+  adjacent_color <- adjacent_color_set(solution, G)
 
-  satur <- rep(0, G$V)
-  nit <- 0
+  #satur
+  #satur <- rep(0, G$V)
+  uncolored_v <- which(solution==0)
+  satur <- sapply(1:G$V, FUN = function(x) { if(is.element(x, uncolored_v)) {sum(adjacent_color[,x])} else -1 })
 
   #if tie in saturation, use this permutation
   perm <- order(weight, decreasing = T)
 
+  nit <- 0
   while((nit < nfe) & (length(solution[solution == 0])>0)){
     #Next vertex
     v <- perm[which(satur[perm] == max(satur))[1]]
@@ -81,6 +81,7 @@ dsatur <- function(G, nfe, weight, partial_solution){
 
     #update counter of adjacent colors
     adjacent_color[color, G$adj[[as.character(v)]]] <- 1
+    adjacent_color[color, v] <- 1
 
     #keep track of uncolored vertices
     uncolored_v <- which(solution==0)
@@ -91,23 +92,25 @@ dsatur <- function(G, nfe, weight, partial_solution){
     nit <- nit + 1
   }
 
-  return(list(best = solution, evals = nit))
+  violation <- evaluate(solution, G)
+  return(list(violation = violation, best = solution, evals = nit))
 }
 
 #' DSatur (doesn't color all vertices, doesn't generate violation)
 dsatur2 <- function(G, nfe, weight, partial_solution){
   #Init: solution, adjacent colors of each vertex, saturation degrees
-  #adjacent_color <- matrix(0, 3, G$V)
   solution <- partial_solution
-  adjacent_color <- adjacent_color_set(solution)
-  satur <- rep(0, G$V)
-  nit <- 0
-  colored <- c() #set of colored vertices and vertices that could not be colored due to violation.
+  adjacent_color <- adjacent_color_set(solution, G)
+
+  colored <- which(solution!=0) #set of colored vertices and vertices that could not be colored due to violation.
+  satur <- sapply(1:G$V, FUN = function(x) { sum(adjacent_color[,x]) })
+  satur[colored] <- -1
 
   #if tie in saturation, use this permutation
   perm <- order(weight, decreasing = T)
 
-  while((nit < nfe) & (length(colored)<=G$V)){
+  nit <- 0
+  while((nit < nfe) & (length(colored)<G$V)){
     #Next vertex
     v <- perm[which(satur[perm] == max(satur))[1]]
 
@@ -122,6 +125,7 @@ dsatur2 <- function(G, nfe, weight, partial_solution){
 
       #update counter of adjacent colors
       adjacent_color[color, G$adj[[as.character(v)]]] <- 1
+      adjacent_color[color, v] <- 1
 
       #update saturation degree
       satur <- sapply(1:G$V, FUN = function(x) { sum(adjacent_color[,x]) })
@@ -133,7 +137,10 @@ dsatur2 <- function(G, nfe, weight, partial_solution){
     nit <- nit + 1
   }
 
-  return(list(best = solution, evals = nit))
+  violation <- evaluate(solution, G)
+  violation <- violation + sum(solution==0)
+
+  return(list(violation = violation, best = solution, evals = nit))
 }
 
 #' Auxiliar function for DSatur
@@ -143,12 +150,13 @@ dsatur2 <- function(G, nfe, weight, partial_solution){
 #' (a V vector of 1:3) and the total number of evaluations spent
 #'
 #' @export
-adjacent_color_set <- function(s){
+adjacent_color_set <- function(s, G){
   adjacent_color <- matrix(0, 3, G$V)
 
   for(j in 1:3){
     for(i in which(s == j)){
       adjacent_color[j, G$adj[[as.character(i)]]] <- 1
+      adjacent_color[j, i] <- 1
     }
   }
 

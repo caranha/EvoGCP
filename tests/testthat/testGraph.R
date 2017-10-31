@@ -29,7 +29,7 @@ test_that("Generate Culberson Flat gives valid graph", {
   #test coloring
   g$adj <- adjacency_list(g)
   degree <- sapply(1:g$V, FUN = function(x) { sum(g$E[1]==x)+sum(g$E[2]==x) })
-  s <- solver_dsatur(G, G$V+1, args=list(permutation=degree))
+  s <- solver_dsatur(G, G$V+1, args=list(weight=degree, partial_solution=NULL, leave_uncolored=F))
   expect_equal(s$violation, 0)
   expect_equal(length(s$best[s$best==0]), 0)
 })
@@ -44,7 +44,7 @@ test_that("Generate Culberson Equipartite gives valid graph", {
   #test coloring
   g$adj <- adjacency_list(g)
   degree <- sapply(1:g$V, FUN = function(x) { sum(g$E[1]==x)+sum(g$E[2]==x) })
-  s <- solver_dsatur(G, G$V+1, args=list(permutation=degree))
+  s <- solver_dsatur(G, G$V+1, args=list(weight=degree, partial_solution=NULL, leave_uncolored=F))
   expect_equal(s$violation, 0)
   expect_equal(length(s$best[s$best==0]), 0)
 })
@@ -59,7 +59,7 @@ test_that("Generate Culberson with Variability valid graph", {
   #test coloring
   g$adj <- adjacency_list(g)
   degree <- sapply(1:g$V, FUN = function(x) { sum(g$E[1]==x)+sum(g$E[2]==x) })
-  s <- solver_dsatur(G, G$V+1, args=list(permutation=degree))
+  s <- solver_dsatur(G, G$V+1, args=list(weight=degree, partial_solution=NULL, leave_uncolored=F))
   expect_equal(s$violation, 0)
   expect_equal(length(s$best[s$best==0]), 0)
 })
