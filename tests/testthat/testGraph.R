@@ -25,13 +25,6 @@ test_that("Generate Culberson Flat gives valid graph", {
   expect_equal(sum(duplicated(g$E)), 0)
   expect_lte(max(g$E),10)
   expect_gte(min(g$E),0)
-
-  #test coloring
-  g$adj <- adjacency_list(g)
-  degree <- sapply(1:g$V, FUN = function(x) { sum(g$E[1]==x)+sum(g$E[2]==x) })
-  s <- solver_dsatur(G, G$V+1, args=list(weight=degree, partial_solution=NULL, leave_uncolored=F))
-  expect_equal(s$violation, 0)
-  expect_equal(length(s$best[s$best==0]), 0)
 })
 
 test_that("Generate Culberson Equipartite gives valid graph", {
@@ -40,13 +33,6 @@ test_that("Generate Culberson Equipartite gives valid graph", {
   expect_equal(sum(duplicated(g$E)), 0)
   expect_lte(max(g$E),10)
   expect_gte(min(g$E),0)
-
-  #test coloring
-  g$adj <- adjacency_list(g)
-  degree <- sapply(1:g$V, FUN = function(x) { sum(g$E[1]==x)+sum(g$E[2]==x) })
-  s <- solver_dsatur(G, G$V+1, args=list(weight=degree, partial_solution=NULL, leave_uncolored=F))
-  expect_equal(s$violation, 0)
-  expect_equal(length(s$best[s$best==0]), 0)
 })
 
 test_that("Generate Culberson with Variability valid graph", {
@@ -55,13 +41,6 @@ test_that("Generate Culberson with Variability valid graph", {
   expect_equal(sum(duplicated(g$E)), 0)
   expect_lte(max(g$E),10)
   expect_gte(min(g$E),0)
-
-  #test coloring
-  g$adj <- adjacency_list(g)
-  degree <- sapply(1:g$V, FUN = function(x) { sum(g$E[1]==x)+sum(g$E[2]==x) })
-  s <- solver_dsatur(G, G$V+1, args=list(weight=degree, partial_solution=NULL, leave_uncolored=F))
-  expect_equal(s$violation, 0)
-  expect_equal(length(s$best[s$best==0]), 0)
 })
 
 test_that("Generate Sets of Graphs", {
