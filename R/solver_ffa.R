@@ -62,6 +62,7 @@ solver_ffa <- function(G, nfe, args){
   gamma <- args[["gamma"]]          # absorbtion coefficient
   use_swap <- args[["swap"]]        # heuristical swap?
 
+
   #DSatur heuristic setup
   G$adj <- adjacency_list(G) #build adjacency list
 
@@ -75,28 +76,33 @@ solver_ffa <- function(G, nfe, args){
 
   vio.best <- V[order(V)[1]]
   c.best <- P[order(V)[1], ]
-  eval <- newP$evals
+  eval <- newP$eval
 
   while(vio.best > 0 & eval < nfe) {
     # Step 1. Move all fireflies
-    newP <- ffa.step1(W, V, G, alpha, beta, gamma, pop)
-    SATUR <- newP$SATUR
+    newW <- ffa.step1(W, V, alpha, beta, gamma, pop)
+
+    # Decode and evaluate
+    newP <- ffa.decode(newW, G)
 
     #elitism
-    eval <- eval + newP$evals
+    eval <- eval + newP$eval
     D <- (newP$V <= V)          # pairwise testing children and parent
-    W[D, ] <- newP$W[D, ]       # replace better children
+    W[D, ] <- newW[D, ]       # replace better children
     P[D, ] <- newP$P[D, ]
     V[D]   <- newP$V[D]
 
     # Step 2. Heuristical Swap
     if(use_swap == T){
-      newP <- ffa.step2(P, W, V, SATUR, G)
+      newW <- ffa.step2(P, W, G)
+
+      # Decode and evaluate
+      newP <- ffa.decode(newW, G)
 
       #elitism
-      eval <- eval + newP$evals
+      eval <- eval + newP$eval
       D <- (newP$V <= V)          # pairwise testing children and parent
-      W[D, ] <- newP$W[D, ]       # replace better children
+      W[D, ] <- newW[D, ]       # replace better children
       P[D, ] <- newP$P[D, ]
       V[D]   <- newP$V[D]
     }
@@ -113,12 +119,10 @@ solver_ffa <- function(G, nfe, args){
 }
 
 #move firefly
-ffa.step1 <- function(W, V, G, alpha, beta, gamma, pop) {
+ffa.step1 <- function(W, V, alpha, beta, gamma, pop) {
   o <- order(V)
   W2 <- t(sapply(1:pop, ffa.move, W=W, V=V, o=o, alpha=alpha, beta=beta, gamma=gamma))
-
-  newP <- ffa.decode(W2, G)
-  return(list(P = newP$P, V = newP$V, evals = newP$eval, W=W2, SATUR=newP$SATUR))
+  return(W2)
 }
 
 ffa.move <- function(i, W, V, o, alpha, beta, gamma){
@@ -138,25 +142,23 @@ ffa.move <- function(i, W, V, o, alpha, beta, gamma){
     #w <- current position + sum(attractions) + random step
     w <- W[o[i],] + A + rnd
   }
-
   return(w)
 }
 
 ffa.decode <- function(W, G){
   #decode
   P2 <- sapply(1:nrow(W), FUN = function(x) {
-    solver_dsatur(G, G$V+1, args=list(weight=W[x,], return_satur=TRUE))})
+    solver_dsatur(G, G$V+1, args=list(weight=W[x,], partial_solution=NULL, leave_uncolored=T))})
 
   #extrac P, V and eval
   P3 <- t(sapply(1:nrow(W), FUN = function(x) { P2[["best",x]] }))
-  SATUR <- t(sapply(1:nrow(W), FUN = function(x) { P2[["satur",x]] }))
   V2 <- unlist(unname(P2["violation",]))
   eval2 <- sum(unlist(P2["evals",]))
 
-  return(list(P = P3, V = V2, evals = eval2, SATUR = SATUR))
+  return(list(P = P3, V = V2, eval = eval2))
 }
 
-#' Heuristical Swap (step2)
+#' Heuristical Swap
 #'
 #' Swaps an uncolored vertex with the vertex that has highest saturation degree
 #' if tie, choose randomly
@@ -168,13 +170,18 @@ ffa.decode <- function(W, G){
 #'
 #' @param p vector of colors
 #' @param w vector of weights
-#' @param v the uncolored vertex which will be swapped
-#' @param satur vector of saturation degrees
+#' @param rho vector of saturation degrees
 #' @return a permutation of w
-ffa.heuristical_swap <- function(p, w, v, satur){
+ffa.heuristical_swap <- function(p, w, G){
   w2 <- w
 
+  #get the uncolored vertex (if there is)
+  v <- which(p == 0)[1]
   if(!is.na(v) & v > 1){ #there is no vertex to swap, if the uncolored vertex is the first one
+    #get saturation degrees
+
+    adjacent_color <- adjacent_color_set(p, G)
+    satur <- sapply(1:ncol(adjacent_color), FUN = function(x) { sum(adjacent_color[,x]) })
     o <- order(satur[1:(v-1)], decreasing = T)
 
     #get the vertex that has the highest satur
@@ -187,71 +194,11 @@ ffa.heuristical_swap <- function(p, w, v, satur){
   }
 
   return(w2)
+
 }
 
-#' Improve (step2)
-#'
-#' Tries to improve a solution by local search (heuristical swap)
-#' Stops when improvement is detected*
-#'
-#' NOTE: The paper is a little bit unclear about this procedure. It says the heuristical swap operator is executed
-#' until the improvements are detected, but it doens't say exactly how to proceed after a no improvement
-#' Some questions of when there is no improvement:
-#' should the next uncolored vertex be considered? or
-#' should the next swap be on the result of the previous swap?
-#'
-#' This version assumes the next uncolored vertex should be considered in case of no improvement.*
-#'
-#'
-#' @param p vector of colors
-#' @param w vector of weights
-#' @param v number of violations
-#' @param G graph
-#' @return list with the permutation of w and its related p, v and number of its functions evaluated
-ffa.improve <- function(p, w, v, satur, G){
-  #setup
-  i <- 1
-  evals <- 0
-  climbing <- TRUE
-
-  #list of uncolored vertices
-  uncolored <- which(p == 0)
-
-  #saturation degrees
-  #adjacent_color <- adjacent_color_set(p, G)
-  #satur <- sapply(1:ncol(adjacent_color), FUN = function(x) { sum(adjacent_color[,x]) })
-
-  #run until improvement is detected
-  while(i <= length(uncolored) & climbing){
-    #move solution
-    neww <- ffa.heuristical_swap(p, w, uncolored[i], satur)
-
-    #evaluate new solution
-    newp <- solver_dsatur(G, G$V+1, args=list(weight=w, return_satur=FALSE))
-
-    #if the new solution is better, stop. Otherwhise move again
-    if(newp$violation < v){
-      p <- newp$best
-      w <- neww
-      v <- newp$violation
-      climbing <- FALSE
-    }
-    evals <- evals + newp$evals #+ 1
-    i <- i + 1
-  }
-
-  return(list(p = p, v = v, eval = evals, w = w))
-}
-
-#Local Search
-ffa.step2 <- function(P, W, V, SATUR, G){
-  newP <- sapply(1:nrow(W), FUN = function(x){ ffa.improve(p=P[x,], w=W[x,], v=V[x], satur=SATUR[x,], G=G) })
-
-  P2 <- t(sapply(1:nrow(W), FUN = function(x) { newP[["p",x]] }))
-  W2 <- t(sapply(1:nrow(W), FUN = function(x) { newP[["w",x]] }))
-  V2 <- unlist(newP["v",])
-  eval2 <- sum(unlist(newP["eval",]))
-
-  return(list(P = P2, V = V2, evals = eval2, W=W2))
-
+#heuristical swap
+ffa.step2 <- function(P, W, G){
+  W2 <- t(sapply(1:nrow(W), FUN = function(x){ ffa.heuristical_swap(p=P[x,], w=W[x,], G=G) }))
+  return(W2)
 }
