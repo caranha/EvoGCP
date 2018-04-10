@@ -4,16 +4,18 @@
 \alias{problemset}
 \title{Problemset Generator}
 \usage{
-problemset(P, N, density, method)
+problemset(P, N, density, method, x = NULL)
 }
 \arguments{
 \item{P}{number of problems to be generated}
 
 \item{N}{number of vertices in each problem}
 
-\item{density}{edge density in each problem}
+\item{density}{edge density in each problem.}
 
 \item{method}{a string defining the function for problem generation. Will load a "graph_method" from the package}
+
+\item{x}{addictional parameter for some specific methods (e.g. flatness, variability etc)}
 }
 \value{
 a list with P instances of 3GCP problems with N vertices and N*density edges
@@ -21,4 +23,3 @@ a list with P instances of 3GCP problems with N vertices and N*density edges
 \description{
 Generate a set of 3GCP problems
 }
-

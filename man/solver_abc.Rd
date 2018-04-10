@@ -56,4 +56,3 @@ are choosen randomly from x_j, and copied into x_i.
 Yuuya Togashi, Claus Aranha, Hitoshi Kanoh, "Artificial Bee Colony Algorithm for Solving
 Graph Coloring Problem", Proceedings of the IPSJ, 2017
 }
-

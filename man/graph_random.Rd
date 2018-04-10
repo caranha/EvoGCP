@@ -21,4 +21,3 @@ Generates a random, valid 3-GCP instance, without connectivity guarantee
 \examples{
 generate_random(10,2)
 }
-

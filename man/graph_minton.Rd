@@ -28,4 +28,3 @@ The algorithm is defined in three steps:
 \examples{
 generate_minton(10,2)
 }
-

@@ -27,6 +27,7 @@
 #'
 #' @examples
 #' solver_dsatur(10,2)
+#' @export
 solver_dsatur <- function(G, nfe, args){#wrapper
   assertthat::assert_that(
     all(assertthat::has_name(args,

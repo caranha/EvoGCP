@@ -65,4 +65,3 @@ is evaluated, and P_best and G_best are updated as necessary.
 Takuya Aoki, Claus Aranha, Hitoshi Kanoh, "PSO Algorithm with Transition Probability Based on Hamming Distance
 for Graph Coloring Problem", IEEE International Conference On Systems, Man and Cybernetics, 2015.
 }
-

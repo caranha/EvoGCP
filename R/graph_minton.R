@@ -14,6 +14,7 @@
 #' @return a list of pair arrays representing edges in the graph. The graph is simple and undirected.
 #' @examples
 #' generate_minton(10,2)
+#' @export
 graph_minton <- function(N, density = 2) {
 
   V1 <- 1:floor(N / 3)

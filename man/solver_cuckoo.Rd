@@ -64,4 +64,3 @@ changed to a random, different value.
 Toda Keita, Claus Aranha, Hitoshi Kanoh, "Solving the Graph Coloring Problem using Cuckoo Search",
 Technical Report of the Information Processing Society of Japan, 2016
 }
-

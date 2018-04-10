@@ -20,4 +20,3 @@ a list containing the total number of violations of the best coloring, the best 
 \description{
 Solves the 3-GCP problem by generating random colorings
 }
-

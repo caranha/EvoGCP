@@ -6,6 +6,7 @@
 #' graph is guaranteed to have a valid 3-coloring, but not guaranteed to be connected.
 #' @examples
 #' generate_random(10,2)
+#' @export
 graph_random <- function(N, density = 2) {
 
   V1 <- 1:floor(N / 3)

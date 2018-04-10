@@ -17,4 +17,3 @@ given by:
 
 1 - d / (length of x)
 }
-

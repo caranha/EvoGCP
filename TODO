@@ -1,7 +1,4 @@
 # Tasks
 - Make time output of "tester" optional
 - Make CS to ignore missing E parameter gracefully if policy is not fixed
-
 - Write Description
-- Add to github
-- Add FA algorithm from Fister

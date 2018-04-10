@@ -31,6 +31,7 @@
 #' graph is guaranteed to have a valid 3-coloring
 #' @examples
 #' graph_culberson_flat(10,1,0)
+#' @export
 graph_culberson_flat <- function(N, probability=1, flatness=0) {
   #generate permutation of vertices
   Vperm <- sample(1:N)

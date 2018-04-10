@@ -20,4 +20,3 @@ the description by Xin-She Yang,
 "Nature-Inspired Metaheuristic Algorithms"
  Second Edition, Luniver Press, (2010).
 }
-

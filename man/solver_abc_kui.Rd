@@ -62,4 +62,3 @@ are choosen randomly from x_j, and copied into x_i.
 Kui Chen, Hitoshi Kanoh, "A Discrete Artificial Bee Colony Algorithm Based on
 Similarity for Graph Coloring Problems", Proceedings of the 5th TPNC, 2017
 }
-

@@ -17,4 +17,3 @@ calculated as before, but with an extra factor R.
 Where d is the number of positions with different colors between x and y,
 and R is a random uniform number between 0 and 1.
 }
-

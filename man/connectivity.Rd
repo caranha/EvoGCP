@@ -17,4 +17,3 @@ Boolean whether the graph is connected
 \description{
 Tests a graph for connectivity
 }
-

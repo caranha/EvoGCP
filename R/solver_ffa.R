@@ -227,7 +227,7 @@ ffa.improve <- function(p, w, v, satur, G){
     neww <- ffa.heuristical_swap(p, w, uncolored[i], satur)
 
     #evaluate new solution
-    newp <- solver_dsatur(G, G$V+1, args=list(weight=w, return_satur=FALSE))
+    newp <- solver_dsatur(G, G$V+1, args=list(weight=neww, return_satur=FALSE))
 
     #if the new solution is better, stop. Otherwhise move again
     if(newp$violation < v){

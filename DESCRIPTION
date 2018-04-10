@@ -1,7 +1,7 @@
 Package: EvoGCP
 Type: Package
 Title: Evolutionary Computation Tools for the Graph Coloring Problem
-Version: 0.2.0
+Version: 0.3.1
 Author: Claus Aranha
 Maintainer: Claus Aranha <caranha@cs.tsukuba.ac.jp>
 Description: Set of solvers for the GCP problem based on evolutionary computation, and utility functions such as graph generators and batch test runners.
@@ -14,4 +14,4 @@ Suggests:
     pbapply,
     parallel
 VignetteBuilder: knitr
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1

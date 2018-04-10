@@ -4,7 +4,7 @@
 \alias{tester}
 \title{Tester}
 \usage{
-tester(pset, nfe, solverpar, cl = NULL, output = NULL)
+tester(pset, nfe, solverpar, cl = NULL, output = "none")
 }
 \arguments{
 \item{nfe}{the maximum number of evaluations per graph}
@@ -29,4 +29,3 @@ cl <- parallel::makeCluster(no_cores)
 x <- tester(pset, nfe, solver, NULL, cl = cl)
 parallel::stopCluster(cl)
 }
-

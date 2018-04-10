@@ -15,4 +15,3 @@ A vector with N integers 1-3
 \description{
 Generate a random solution for the graph 3-coloring problem.
 }
-
